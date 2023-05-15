@@ -7,11 +7,7 @@ package ro.utcluj.ssatr.airticketreservationapp.repository;
 import ro.utcluj.ssatr.airticketreservationapp.model.FlightInformation;
 import ro.utcluj.ssatr.airticketreservationapp.model.FlightReservation;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +26,12 @@ public class DBAccess {
     
     public void insertFlight(FlightInformation f) throws SQLException{
         try(Statement s = connection.createStatement()) {
-            s.executeUpdate("INSERT INTO FLIGHTS(FLIGHTNUMBER, NOOFSEATS, DEPARTUREDATE) VALUES('" + f.getFlightNumber() + "'," + f.getNumberOfSeats() + ",'" + f.getDepartureDate() + "')");
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO FLIGHTS(FLIGHTNUMBER, NOOFSEATS, DEPARTUREDATE) VALUES(?,?,?)");
+            ps.setString(1, f.getFlightNumber());
+            ps.setInt(2, f.getNumberOfSeats());
+            ps.setString(3, f.getDepartureDate());
+            ps.executeUpdate();
+  //          s.executeUpdate("INSERT INTO FLIGHTS(FLIGHTNUMBER, NOOFSEATS, DEPARTUREDATE) VALUES('" + f.getFlightNumber() + "'," + f.getNumberOfSeats() + ",'" + f.getDepartureDate() + "')");
         }
     }
 
@@ -49,6 +50,12 @@ public class DBAccess {
             } else {
                 return null;
             }
+        }
+    }
+
+    public void deleteFlight(String flightNumber) throws SQLException{
+        try(Statement s = connection.createStatement()) {
+            s.executeUpdate("DELETE FROM FLIGHTS WHERE FLIGHTNUMBER='" + flightNumber + "'");
         }
     }
 
@@ -73,6 +80,7 @@ public class DBAccess {
             connection.setAutoCommit(false);
 
             statement = connection.createStatement();
+            //read about SELECT FOR UPDATE gere https://www.cockroachlabs.com/blog/select-for-update/
             String lockQuery = "SELECT * FROM reservations FOR UPDATE";
             resultSet = statement.executeQuery(lockQuery);
 

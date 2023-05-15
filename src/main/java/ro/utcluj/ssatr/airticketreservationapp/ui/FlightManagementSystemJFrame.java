@@ -24,8 +24,9 @@ public class FlightManagementSystemJFrame extends javax.swing.JFrame {
         initComponents();
     }
 
-    public FlightManagementSystemJFrame(FlightReservationService frs) throws HeadlessException {
+    public FlightManagementSystemJFrame(FlightReservationService frs) {
         this.frs = frs;
+        initComponents();
     }
 
     /**

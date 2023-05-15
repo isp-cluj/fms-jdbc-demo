@@ -26,6 +26,7 @@ public class FlightReservationService {
         }
 
         flightInformationTableModel  = new FlightInformationTableModel(connection);
+
     }
 
     public FlightInformationTableModel getFlightInformationTableModel() {
