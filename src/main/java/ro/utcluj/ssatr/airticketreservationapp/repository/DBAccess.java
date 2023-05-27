@@ -16,34 +16,35 @@ import java.util.List;
  * @author mihai.hulea
  */
 public class DBAccess {
-     private Connection connection;
-    
+
+    private Connection connection;
+
     public DBAccess() throws ClassNotFoundException, SQLException {
-               Class.forName("com.mysql.cj.jdbc.Driver");
-                //conectare la baza de date            
-                connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/flights","root","root");
-       }
-    
-    public void insertFlight(FlightInformation f) throws SQLException{
-        try(Statement s = connection.createStatement()) {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        //conectare la baza de date            
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/flights", "root", "root");
+    }
+
+    public void insertFlight(FlightInformation f) throws SQLException {
+        try ( Statement s = connection.createStatement()) {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO FLIGHTS(FLIGHTNUMBER, NOOFSEATS, DEPARTUREDATE) VALUES(?,?,?)");
             ps.setString(1, f.getFlightNumber());
             ps.setInt(2, f.getNumberOfSeats());
             ps.setString(3, f.getDepartureDate());
             ps.executeUpdate();
-  //          s.executeUpdate("INSERT INTO FLIGHTS(FLIGHTNUMBER, NOOFSEATS, DEPARTUREDATE) VALUES('" + f.getFlightNumber() + "'," + f.getNumberOfSeats() + ",'" + f.getDepartureDate() + "')");
+            //          s.executeUpdate("INSERT INTO FLIGHTS(FLIGHTNUMBER, NOOFSEATS, DEPARTUREDATE) VALUES('" + f.getFlightNumber() + "'," + f.getNumberOfSeats() + ",'" + f.getDepartureDate() + "')");
         }
     }
 
-    public void insertReservation(FlightReservation reservation) throws SQLException {
-        try(Statement s = connection.createStatement()) {
+    private void insertReservation(FlightReservation reservation) throws SQLException {
+        try ( Statement s = connection.createStatement()) {
             s.executeUpdate("INSERT INTO RESERVATIONS(FLIGHTNUMBER, NOOFTICKETS) VALUES('" + reservation.getFlightNumber() + "'," + reservation.getNoOfTickets() + ")");
         }
-    }
-   
 
-    public FlightInformation findFlight(String flightNumber) throws SQLException{
-        try(Statement s = connection.createStatement()) {
+    }
+
+    public FlightInformation findFlight(String flightNumber) throws SQLException {
+        try ( Statement s = connection.createStatement()) {
             ResultSet rs = s.executeQuery("SELECT * FROM FLIGHTS WHERE FLIGHTNUMBER='" + flightNumber + "'");
             if (rs.next()) {
                 return new FlightInformation(rs.getString("FLIGHTNUMBER"), rs.getInt("NOOFSEATS"), rs.getString("DEPARTUREDATE"));
@@ -53,14 +54,14 @@ public class DBAccess {
         }
     }
 
-    public void deleteFlight(String flightNumber) throws SQLException{
-        try(Statement s = connection.createStatement()) {
+    public void deleteFlight(String flightNumber) throws SQLException {
+        try ( Statement s = connection.createStatement()) {
             s.executeUpdate("DELETE FROM FLIGHTS WHERE FLIGHTNUMBER='" + flightNumber + "'");
         }
     }
 
-    public List<FlightInformation> findAll() throws SQLException{
-        try(Statement s = connection.createStatement()) {
+    public List<FlightInformation> findAll() throws SQLException {
+        try ( Statement s = connection.createStatement()) {
             ArrayList<FlightInformation> list = new ArrayList<>();
 
             ResultSet rs = s.executeQuery("SELECT * FROM FLIGHTS");
@@ -72,7 +73,7 @@ public class DBAccess {
 
     }
 
-    public void makeReservation(FlightReservation reservation){
+    public void makeReservation(FlightReservation reservation) {
         Statement statement = null;
         ResultSet resultSet = null;
         System.out.println("PREPARE TO MAKE RESERVATION");
@@ -86,11 +87,15 @@ public class DBAccess {
 
             // Perform your updates on the table here
             FlightInformation f = findFlight(reservation.getFlightNumber());
-            updateSeats(reservation.getFlightNumber(), f.getNumberOfSeats()-reservation.getNoOfTickets());
-            insertReservation(reservation);
-            System.out.println("RESERVATION COMPLETE");
+            if (f.getNumberOfSeats() - reservation.getNoOfTickets() >= 0) {
+                updateSeats(reservation.getFlightNumber(), f.getNumberOfSeats() - reservation.getNoOfTickets());
+                insertReservation(reservation);
+                System.out.println("RESERVATION COMPLETE");
+                connection.commit();
+            }else{
+                throw new SQLException("Error reservation, no seats available.");
+            }
 
-            connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
             if (connection != null) {
@@ -122,7 +127,7 @@ public class DBAccess {
             if (connection != null) {
                 try {
                     connection.setAutoCommit(true);
-                    
+
                 } catch (SQLException e) {
                     e.printStackTrace();
                     // Handle connection closure failure
@@ -132,20 +137,20 @@ public class DBAccess {
 
     }
 
-    public void cancelReservation(int reservationId){
+    public void cancelReservation(int reservationId) {
 
     }
 
-
     void updateSeats(String flightNumber, int noOfTikets) throws SQLException {
-        try(Statement s = connection.createStatement()) {
+        try ( Statement s = connection.createStatement()) {
             s.executeUpdate("UPDATE flights SET NOOFSEATS=" + noOfTikets + " WHERE FLIGHTNUMBER='" + flightNumber + "'");
         }
     }
-    
+
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
         DBAccess db = new DBAccess();
-        //db.insertFlight(new FlightInformation("CJB01", 140, "19-01-2023"));
-        db.updateSeats("CJB01", 199);
+        System.out.println("Connection ok...");
+        db.insertFlight(new FlightInformation("SM0101", 140, "19-01-2023"));
+        //db.updateSeats("CJB01", 199);
     }
 }
