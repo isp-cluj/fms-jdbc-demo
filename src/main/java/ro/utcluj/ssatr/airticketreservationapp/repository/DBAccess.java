@@ -22,7 +22,7 @@ public class DBAccess {
     public DBAccess() throws ClassNotFoundException, SQLException {
         Class.forName("com.mysql.cj.jdbc.Driver");
         //conectare la baza de date            
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/flights", "root", "root");
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test01", "root", "root");
     }
 
     public void insertFlight(FlightInformation f) throws SQLException {
@@ -82,7 +82,7 @@ public class DBAccess {
 
             statement = connection.createStatement();
             //read about SELECT FOR UPDATE gere https://www.cockroachlabs.com/blog/select-for-update/
-            String lockQuery = "SELECT * FROM reservations FOR UPDATE";
+            String lockQuery = "SELECT * FROM RESERVATIONS FOR UPDATE";
             resultSet = statement.executeQuery(lockQuery);
 
             // Perform your updates on the table here
@@ -143,7 +143,7 @@ public class DBAccess {
 
     void updateSeats(String flightNumber, int noOfTikets) throws SQLException {
         try ( Statement s = connection.createStatement()) {
-            s.executeUpdate("UPDATE flights SET NOOFSEATS=" + noOfTikets + " WHERE FLIGHTNUMBER='" + flightNumber + "'");
+            s.executeUpdate("UPDATE FLIGHTS SET NOOFSEATS=" + noOfTikets + " WHERE FLIGHTNUMBER='" + flightNumber + "'");
         }
     }
 
